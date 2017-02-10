@@ -7,8 +7,10 @@ import {
 const runWithRaf = fn => {
 	let s = true;
 	const go = () => {
-		fn();
-		requestAnimationFrame(go);
+		if (s) {
+			fn();
+			requestAnimationFrame(go);
+		}
 	};
 	const remote = {
 		pause: () => (s = false, remote),

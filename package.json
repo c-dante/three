@@ -10,6 +10,7 @@
     "test": "./node_modules/mocha/bin/mocha --compilers js:babel-register src/**/*.spec.js"
   },
   "dependencies": {
+    "flyd": "^0.2.4",
     "three": "^0.84.0"
   },
   "devDependencies": {
