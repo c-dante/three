@@ -1,11 +1,11 @@
 {
-  "name": "browser-base",
-  "version": "1.0.0",
-  "repository": "c-dante/browser-base",
+  "name": "three",
+  "version": "0.0.0",
+  "repository": "c-dante/three",
   "scripts": {
     "compiler": "rm -rf bin && ./node_modules/webpack/bin/webpack.js",
     "aws-deploy": "aws s3 sync --acl public-read --delete ./bin",
-    "linter": "./node_modules/eslint/bin/eslint.js --fix src/ test/",
+    "linter": "./node_modules/eslint/bin/eslint.js --fix src/",
     "server": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js --hot --inline --progress",
     "test": "./node_modules/mocha/bin/mocha --compilers js:babel-register src/**/*.spec.js"
   },
@@ -23,8 +23,9 @@
     "babel-register": "^6.7.2",
     "chai": "^3.5.0",
     "css-loader": "^0.26.1",
-    "eslint": "^3.13.0",
-    "eslint-config-airbnb": "^13.0.0",
+    "eslint": "^3.15.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-import-resolver-webpack": "^0.8.1",
     "eslint-plugin-import": "^2.2.0",
     "extract-loader": "^0.1.0",
     "file-loader": "^0.10.0",

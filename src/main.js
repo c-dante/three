@@ -1,61 +1,48 @@
-import './main.scss';
 import {
 	Scene, PerspectiveCamera, WebGLRenderer,
-	Mesh, BoxGeometry, MeshBasicMaterial
-}from 'three';
+	Mesh, BoxGeometry, MeshBasicMaterial,
+} from 'three';
+import './main.scss';
+import * as $ from './util';
 
-const runWithRaf = fn => {
-	let s = true;
-	const go = () => {
-		if (s) {
-			fn();
-			requestAnimationFrame(go);
-		}
-	};
-	const remote = {
-		pause: () => (s = false, remote),
-		play: () => (s = true, go(), remote),
-	};
-	return remote.play();
+// Scene + render details
+const scene = new Scene();
+const renderer = new WebGLRenderer();
+const camera = new PerspectiveCamera(
+	27,
+	1,
+	1, 10000
+);
+
+// Helpers for scene geometry
+const makeBox = (l, w = l, h = l) => new BoxGeometry(l, w, h);
+const box = makeBox(200);
+const redWireMat = new MeshBasicMaterial({ color: 0xff0000, wireframe: true });
+
+
+// Set up the scene
+const boxMesh = new Mesh(box, redWireMat);
+scene.add(boxMesh);
+camera.position.z = 1000;
+
+const updateScreen = (elt, rend, cam) => {
+	rend.setSize(elt.clientWidth, elt.clientHeight);
+	cam.aspect = elt.clientWidth / elt.clientHeight;
+	cam.updateProjectionMatrix();
 };
-
-const init = (elt) => {
-	const scene = new Scene();
-	
-	const cameraProps = [
-		27,
-		elt.clientWidth / elt.clientHeight,
-		1, 10000
-	];
-	const camera = new PerspectiveCamera(...cameraProps);
-	camera.position.z = 1000;
-	
-	const box = new Mesh(
-		new BoxGeometry(200, 200, 200),
-		new MeshBasicMaterial({ color: 0xff0000, wireframe: true })
-	);
-	scene.add(box);
-	
-	const renderer = new WebGLRenderer();
-	renderer.setSize(elt.clientWidth, elt.clientHeight);
-
-	return {
-		camera, renderer, scene, box
-	};
-}
 
 const main = document.querySelector('.main');
 
-const {
-	camera, renderer, scene, box
-} = init(main);
+window.addEventListener('resize', () => {
+	updateScreen(main, renderer, camera);
+});
+updateScreen(main, renderer, camera);
+
 
 main.appendChild(renderer.domElement);
 
-const remote = runWithRaf(() => {
-	box.rotation.x += 0.01;
-	box.rotation.z += 0.01;
+$.runWithRaf(() => {
+	boxMesh.rotation.x += 0.01;
+	boxMesh.rotation.z += 0.01;
 	renderer.render(scene, camera);
 });
-
-console.debug(remote);
