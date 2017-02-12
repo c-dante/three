@@ -53,7 +53,7 @@ window.addEventListener('resize', () => {
 
 
 // Add a box to the scene
-new Array(10).fill(0).map(() => {
+const boxes = new Array(10).fill(0).map(() => {
 	const mesh = new Mesh(box, redWireMat);
 
 	mesh.position.x = fp.random(-500, 500);
@@ -76,19 +76,14 @@ const Controls = {
 	TurnDown: ['ArrowDown'],
 };
 const Settings = {
-	RunSpeed: 5,
+	RunSpeed: 10,
 	TurnSpeed: Math.PI / 180,
 };
 const State = {
 	camera,
 	scene,
 	renderer,
-	move: {
-		forward: new Vector3(),
-		back: new Vector3(),
-		left: new Vector3(),
-		right: new Vector3(),
-	},
+	boxes,
 };
 
 const moveTarget = (target, keyState) => {
@@ -119,34 +114,22 @@ const moveTarget = (target, keyState) => {
 	}
 };
 
-State.moveHelpers = fp.mapValues((x) => {
-	const h = new ArrowHelper(x, 50, 0xffffff);
-	// h.position.x = boxMesh.position.x;
-	// h.position.y = boxMesh.position.y;
-	// h.position.z = boxMesh.position.z;
-	scene.add(h);
-	return h;
-}, State.move);
-
 // Build render pipeline
 const pipeline = fp.flow(
 	() => moveTarget(State.camera, $.keys()),
-	() => fp.keys(State.move).forEach((key) => {
-		State.moveHelpers[key].setDirection(State.move[key]);
-	}),
 	() => State.renderer.render(State.scene, State.camera)
 );
 
 // Hook debug @todo: better debugging
-const debug = document.querySelector('.debug');
-$.interval(() => (debug.innerHTML = debugTpl({
-	obj: {
-		...fp.mapValues(
-			v => v.toArray().map(x => x.toFixed(3)),
-			State.move
-		),
-	},
-})), 250);
+// const debug = document.querySelector('.debug');
+// $.interval(() => (debug.innerHTML = debugTpl({
+// 	obj: {
+// 		...fp.mapValues(
+// 			v => v.toArray().map(x => x.toFixed(3)),
+// 			State.move
+// 		),
+// 	},
+// })), 250);
 
 // Init
 setTimeout(() => updateScreen(main, renderer, camera), 25);
