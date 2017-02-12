@@ -5,6 +5,25 @@
 }
 
 .main {
-	width: 100%;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+.debug {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 50%;
 	height: 100%;
+	background: rgb(25, 25, 25);
+	opacity: 0.5;
+	z-index: 10;
+
+	text-align: right;
+
+	color: lightgrey;
+	overflow: auto;
 }

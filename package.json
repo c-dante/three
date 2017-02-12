@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "flyd": "^0.2.4",
+    "lodash": "^4.17.4",
     "three": "^0.84.0"
   },
   "devDependencies": {
