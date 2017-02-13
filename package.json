@@ -1,6 +1,6 @@
 {
   "name": "three",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "repository": "c-dante/three",
   "scripts": {
     "compiler": "rm -rf bin && NODE_ENV=production ./node_modules/webpack/bin/webpack.js",
