@@ -1,4 +1,6 @@
-dl
-	each val, key in obj
-		dt= key
-		dd= val
+p Controls
+ul.debug_control-list
+	each keys, cmd in controls
+		li
+			b #{cmd} 
+			= keys.join(', ')

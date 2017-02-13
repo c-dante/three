@@ -95,3 +95,40 @@ export const interval = (fn, ms) => {
 };
 
 export const remote = runWithRaf(() => tick(Date.now())).play();
+
+
+export const act = (type, payload) => ({ type, payload });
+export const newStore = (reducer, initialState) => {
+	let state = initialState;
+
+	const getState = () => state;
+	const dispatch = (action) => {
+		try {
+			state = reducer(state, action);
+		} catch (e) {
+			console.error(e, action, state);
+		}
+		return action;
+	};
+
+	return {
+		dispatch, getState,
+	};
+};
+
+
+// Helper to run templates smarter I guess maybe?
+export const tplRenderer = (tpl) => {
+	let last = {};
+	let lastElt;
+	return (elt, state) => {
+		if (
+			lastElt !== elt ||
+			Object.keys(state).every(key => state[key] !== last[key])
+		) {
+			last = state;
+			lastElt = elt;
+			elt.innerHTML = tpl(state);
+		}
+	};
+};

@@ -4,15 +4,17 @@ import immutable from 'object-path-immutable';
 import { Mesh, Quaternion } from 'three';
 import * as $ from './util';
 
-// Display / DOM
-import './main.scss';
-
 /* A little splitting of my concerns */
 import * as I from './input';
 import * as G from './geom';
 import * as S from './scene';
 import * as V from './vector';
 
+// Display / DOM
+import './main.scss';
+import debugTpl from './debug.tpl.pug';
+
+const renderDebug = $.tplRenderer(debugTpl);
 
 // @todo: find homes
 /**
@@ -105,26 +107,6 @@ const applyMoveKeys = (target, state, keyIsDown = {}) => {
 };
 
 
-// const act = (type, payload) => ({ type, payload });
-const newStore = (reducer, initialState) => {
-	let state = initialState;
-
-	const getState = () => state;
-	const dispatch = (action) => {
-		try {
-			state = reducer(state, action);
-		} catch (e) {
-			console.error(e, action, state);
-		}
-		return action;
-	};
-
-	return {
-		dispatch, getState,
-	};
-};
-
-
 const defaultState = ((state) => {
 	// Add dom elts?
 	state.dom.main.appendChild(
@@ -184,17 +166,21 @@ const defaultState = ((state) => {
 });
 
 const reducer = (state = defaultState) => {
-
+	// Move target :/
 	applyMoveKeys(state.bb.keyCtrlTarget, state, I.keys.isDown());
 
 	// Render
 	state.engine.renderer.render(state.engine.scene, state.engine.camera);
 
+	// Debug
+	renderDebug(state.dom.debug, {
+		controls: I.Controls,
+	});
+
 	return state;
 };
 
-const store = newStore(reducer, undefined);
-
+const store = $.newStore(reducer, undefined);
 
 // Render/Update pipeline @todo: woof
 flyd.on(time => store.dispatch(time), $.tick);
