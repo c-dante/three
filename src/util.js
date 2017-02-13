@@ -1,4 +1,27 @@
 import flyd from 'flyd';
+// import fp from 'lodash/fp';
+// @todo: actually think about this path crawler code.
+// export const newCrawler = (fn, settings) => {
+// 	const traverser = {
+// 		canVisit: (val, path) => true,
+// 		visit: (val, key) => true,
+// 		start: fp.noop,
+// 		...settings,
+// 	};
+
+// 	traverser.start =
+
+// 	traverser.crawl = (obj, path = '') => {
+// 		const val = fp.get(path, obj);
+// 		if (traverser.canVisit(val, path)) {
+// 			const ret = traverser.visit(val, path);
+// 			if (!ret || ret.type)
+// 		}
+// 		return traverser;
+// 	}
+
+// 	return traverser;
+// }
 
 /**
  * A remote control. Can pause and play.
@@ -39,8 +62,8 @@ export const runWithRaf = (fn) => {
 	return r;
 };
 
-
-export const log = flyd.on(v => console.log(v)); // eslint-disable-line no-console
+export const log = (stream, label = '') =>
+	flyd.on(v => console.log(label, v), stream);  // eslint-disable-line no-console
 
 export const keys = flyd.stream({});
 window.addEventListener('keydown', (evt) => {
@@ -57,7 +80,6 @@ window.addEventListener('keyup', (evt) => {
 		map[evt.key] = false;
 		keys(map);
 	}
-	evt.preventDefault();
 });
 
 export const tick = flyd.stream();
@@ -73,4 +95,3 @@ export const interval = (fn, ms) => {
 };
 
 export const remote = runWithRaf(() => tick(Date.now())).play();
-

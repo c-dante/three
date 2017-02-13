@@ -12,6 +12,15 @@
 	right: 0;
 }
 
+.minimap {
+	position: absolute;
+	width: 250px;
+	height: 250px;
+	bottom: 0;
+	right: 0;
+	z-index: 50;
+}
+
 .debug {
 	display: none;
 
