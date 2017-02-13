@@ -1,7 +1,7 @@
 import flyd from 'flyd';
 import ffilter from 'flyd/module/filter';
 import fp from 'lodash/fp';
-// import * as $ from './util';
+import * as $ from './util';
 
 /**
  * Anything related to inputs on the app that didn't
@@ -17,10 +17,14 @@ export const Controls = {
 	MoveBack: ['s'],
 	MoveLeft: ['a'],
 	MoveRight: ['d'],
-	TurnLeft: ['ArrowLeft'],
-	TurnRight: ['ArrowRight'],
-	TurnUp: ['ArrowUp'],
-	TurnDown: ['ArrowDown'],
+	MoveUp: [' '],
+	MoveDown: ['c'],
+	TurnLeft: ['arrowleft'],
+	TurnRight: ['arrowright'],
+	TurnUp: ['arrowup'],
+	TurnDown: ['arrowdown'],
+	RollCW: ['e'],
+	RollCCW: ['q'],
 };
 
 export const UsedKeysMap = fp.uniq(fp.flatten(fp.reduce(
@@ -38,11 +42,12 @@ keys.noRepeat = ffilter(x => !x.repeat, keys.events);
 keys.isDown = flyd.combine((noRepeat, self) => {
 	const evt = noRepeat();
 	const map = self() || {};
-	map[evt.key] = evt.type === 'keydown';
+	map[evt.key.toLowerCase()] = evt.type === 'keydown';
 	return map;
 }, [keys.noRepeat]);
 
 // keys.isUsed = ffilter(x => UsedKeysMap[x.key], keys.events);
+$.log(keys.isDown);
 
 
 // Attach streams to window events

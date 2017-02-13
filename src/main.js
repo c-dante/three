@@ -1,7 +1,7 @@
 import fp from 'lodash/fp';
 import flyd from 'flyd';
 import immutable from 'object-path-immutable';
-import { Mesh } from 'three';
+import { Mesh, Quaternion } from 'three';
 import * as $ from './util';
 
 // Display / DOM
@@ -17,7 +17,7 @@ import * as V from './vector';
 // @todo: find homes
 /**
  * Updates render window + camera aspect to match.
- * 
+ *
  * @param {DOMElement} elt
  * @param {THREE.Renderer} rend
  * @param {THREE.Camera} cam
@@ -31,13 +31,22 @@ const refreshCamRender = fp.curryN(3, (elt, rend, cam) => {
 
 /**
  * Applies movement logic.
- * 
+ *
  * @param {THREE.Object3D} target
  * @param {KeyState} KeyState
  * @void
  */
 const applyMoveKeys = (target, state, keyIsDown = {}) => {
 	const controlActive = fp.some(x => keyIsDown[x]);
+
+	// Move
+	if (controlActive(I.Controls.MoveUp)) {
+		target.translateOnAxis(V.unit.up, state.RunSpeed);
+	}
+
+	if (controlActive(I.Controls.MoveDown)) {
+		target.translateOnAxis(V.unit.down, state.RunSpeed);
+	}
 
 	if (controlActive(I.Controls.MoveForward)) {
 		target.translateOnAxis(V.unit.forward, state.RunSpeed);
@@ -55,20 +64,51 @@ const applyMoveKeys = (target, state, keyIsDown = {}) => {
 		target.translateOnAxis(V.unit.right, state.RunSpeed);
 	}
 
+
+	// Turn
 	if (controlActive(I.Controls.TurnLeft)) {
-		target.rotation.y += state.TurnSpeed;
+		target.quaternion.multiply(
+			state.cache.quat.setFromAxisAngle(V.unit.up, state.TurnSpeed)
+		);
 	}
 
 	if (controlActive(I.Controls.TurnRight)) {
-		target.rotation.y -= state.TurnSpeed;
+		target.quaternion.multiply(
+			state.cache.quat.setFromAxisAngle(V.unit.down, state.TurnSpeed)
+		);
 	}
+
+	if (controlActive(I.Controls.TurnUp)) {
+		target.quaternion.multiply(
+			state.cache.quat.setFromAxisAngle(V.unit.right, state.TurnSpeed)
+		);
+	}
+
+	if (controlActive(I.Controls.TurnDown)) {
+		target.quaternion.multiply(
+			state.cache.quat.setFromAxisAngle(V.unit.left, state.TurnSpeed)
+		);
+	}
+
+	// Roll
+	if (controlActive(I.Controls.RollCW)) {
+		target.quaternion.multiply(
+			state.cache.quat.setFromAxisAngle(V.unit.forward, state.TurnSpeed)
+		);
+	}
+	if (controlActive(I.Controls.RollCCW)) {
+		target.quaternion.multiply(
+			state.cache.quat.setFromAxisAngle(V.unit.back, state.TurnSpeed)
+		);
+	}
+
 };
 
 
 // const act = (type, payload) => ({ type, payload });
 const newStore = (reducer, initialState) => {
 	let state = initialState;
-	
+
 	const getState = () => state;
 	const dispatch = (action) => {
 		try {
@@ -77,10 +117,10 @@ const newStore = (reducer, initialState) => {
 			console.error(e, action, state);
 		}
 		return action;
-	}
-	
+	};
+
 	return {
-		dispatch, getState
+		dispatch, getState,
 	};
 };
 
@@ -90,23 +130,23 @@ const defaultState = ((state) => {
 	state.dom.main.appendChild(
 		state.engine.renderer.domElement
 	);
-	
+
 	// Declare a render hook?
 	const updateRender = () => refreshCamRender(
 		state.dom.main, state.engine.renderer, state.engine.camera
 	);
 	window.addEventListener('resize', updateRender);
 	updateRender();
-	
+
 	// Create some scene geometry, declare + add actors
 	const floor = new Mesh(G.newPlane(), G.Debug.normals);
-	const boxes = new Array(10).fill(0).map(() => {
+	const boxes = new Array(250).fill(0).map(() => {
 		const mesh = new Mesh(G.newBox(), G.Debug.normals);
-	
-		mesh.position.x = fp.random(-500, 500);
-		mesh.position.y = fp.random(-500, 500);
-		mesh.position.z = fp.random(-500, 500);
-	
+
+		mesh.position.x = fp.random(-1000, 1000);
+		mesh.position.y = fp.random(-1000, 1000);
+		mesh.position.z = fp.random(-1000, 1000);
+
 		return mesh;
 	});
 	const actors = {
@@ -126,10 +166,13 @@ const defaultState = ((state) => {
 		.assign('bb', bb)
 		.value();
 })({
-	//** @type {AppState} */
+	//* * @type {AppState} */
 	// State tree
 	engine: S.createBasicScene(),
 	actors: {},
+	cache: {
+		quat: new Quaternion(),
+	},
 	dom: {
 		main: document.querySelector('.main'),
 		minimap: document.querySelector('.minimap'),
@@ -141,12 +184,12 @@ const defaultState = ((state) => {
 });
 
 const reducer = (state = defaultState) => {
-	
+
 	applyMoveKeys(state.bb.keyCtrlTarget, state, I.keys.isDown());
 
 	// Render
 	state.engine.renderer.render(state.engine.scene, state.engine.camera);
-	
+
 	return state;
 };
 
@@ -155,9 +198,6 @@ const store = newStore(reducer, undefined);
 
 // Render/Update pipeline @todo: woof
 flyd.on(time => store.dispatch(time), $.tick);
-
-
-
 
 
 // updateMiniMap(State, State.camera),
