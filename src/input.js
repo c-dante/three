@@ -45,7 +45,6 @@ keys.isDown = flyd.combine((noRepeat, self) => {
 	map[evt.key.toLowerCase()] = evt.type === 'keydown';
 	return map;
 }, [keys.noRepeat]);
-
 keys.activeCtrl = flyd.combine((downMap) => {
 	const map = downMap();
 	return fp.mapValues(ctrls => fp.some(x => map[x], ctrls), Controls);

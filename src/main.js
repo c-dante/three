@@ -97,22 +97,35 @@ const defaultState = ((state) => {
 
 
 // Let's re-make the above as a slice reducer...?
+const tickSelector = fp.getOr(0, 'app.tick');
 const otherReducer = $.keyedReducer({
 	examples: EX.reducer,
-	tick: (n, act) => (fp.isNumber(act) ? act : n),
+	delta: (n = 0, act, global) => (fp.isNumber(act) ? act - tickSelector(global) : n),
+	tick: (n = 0, act) => (fp.isNumber(act) ? act : n),
 });
 
+// @todo: somehow remove this extra wrapper...?
 const reducer = (state = defaultState, action) => {
 	const app = otherReducer(state, action);
+
+	// @todo: move into example once I convert to naff
+	const td = (tickSelector(state) / 100000000) * Math.PI;
+	state.actors.floor.geometry.vertices.forEach((vert, i) => {
+		vert.z = Math.sin(i*td) * 100;
+		// vert.x += i % 500;
+	});
+
+	state.actors.floor.geometry.verticesNeedUpdate = true;
+
 	return {
 		...state,
 		app,
 	};
 };
 
-
 // @todo: redux or another state container
 const store = $.newStore(reducer);
+
 // Pure hooks?
 store.hook($.logHook());
 store.hook(s => () => {
@@ -139,9 +152,19 @@ store.hook(s => () => {
 });
 
 
-// Hook into event delegation
+// Hook into event delegation @todo: hmmmmm
 dom.examples.addEventListener('input', (evt) => {
 	store.dispatch($.act('SET_EXAMPLE', evt.target.value));
+});
+dom.debug.addEventListener('click', evt => {
+	switch (evt.target.getAttribute('data-action')) {
+		case 'print_state':
+			console.debug(store.getState());
+			break;
+		
+		default:
+			break;
+	}
 });
 
 // Render/Update pipeline @todo: woof

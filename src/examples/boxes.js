@@ -24,10 +24,6 @@ const defaultBoxesState = (state) => {
 	};
 };
 
-export const boxesPause = () => {
-
-};
-
 export const boxesReducer = (state, action, global) => {
 	if (!state) {
 		return defaultBoxesState(global, action);
