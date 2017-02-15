@@ -124,7 +124,7 @@ export const tplRenderer = (tpl) => {
 	return (elt, state) => {
 		if (
 			lastElt !== elt ||
-			Object.keys(state).every(key => state[key] !== last[key])
+			Object.keys(state).some(key => state[key] !== last[key])
 		) {
 			last = state;
 			lastElt = elt;

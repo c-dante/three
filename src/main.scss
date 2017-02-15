@@ -33,6 +33,10 @@
 	color: lightgrey;
 	overflow: auto;
 	
+	.active {
+		color: salmon;
+	}
+	
 	p {
 		text-align: right;
 		margin: 0;

@@ -1,7 +1,7 @@
 import flyd from 'flyd';
 import ffilter from 'flyd/module/filter';
 import fp from 'lodash/fp';
-import * as $ from './util';
+// import * as $ from './util';
 
 /**
  * Anything related to inputs on the app that didn't
@@ -25,6 +25,7 @@ export const Controls = {
 	TurnDown: ['arrowdown'],
 	RollCW: ['e'],
 	RollCCW: ['q'],
+	Sprint: ['shift'],
 };
 
 export const UsedKeysMap = fp.uniq(fp.flatten(fp.reduce(
@@ -33,7 +34,6 @@ export const UsedKeysMap = fp.uniq(fp.flatten(fp.reduce(
 	acc[key] = true;
 	return acc;
 }, {});
-
 
 // Add some nifty things @selectors? actions? reducer? Why flyd here?
 export const keys = {};
@@ -46,8 +46,13 @@ keys.isDown = flyd.combine((noRepeat, self) => {
 	return map;
 }, [keys.noRepeat]);
 
+keys.activeCtrl = flyd.combine((downMap) => {
+	const map = downMap();
+	return fp.mapValues(ctrls => fp.some(x => map[x], ctrls), Controls);
+}, [keys.isDown])({});
+
 // keys.isUsed = ffilter(x => UsedKeysMap[x.key], keys.events);
-$.log(keys.isDown);
+// $.log(keys.activeCtrl);
 
 
 // Attach streams to window events

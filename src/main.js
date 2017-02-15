@@ -8,15 +8,30 @@ import * as $ from './util';
 import * as I from './input';
 import * as G from './geom';
 import * as S from './scene';
-import * as V from './vector';
+import { fly } from './examples/fly';
 
 // Display / DOM
 import './main.scss';
 import debugTpl from './debug.tpl.pug';
+import examplesTpl from './examples/examples.tpl.pug';
 
-const renderDebug = $.tplRenderer(debugTpl);
+const tpl = fp.mapValues($.tplRenderer, {
+	debugTpl,
+	examplesTpl,
+});
 
-// @todo: find homes
+const body = document.querySelector('body');
+const dom = fp.flow(
+	fp.map((k) => {
+		const elt = document.createElement('div');
+		body.appendChild(elt);
+		elt.classList.add(k);
+		return [k, elt];
+	}),
+	fp.fromPairs
+)(['main', 'examples', 'debug']);
+
+
 /**
  * Updates render window + camera aspect to match.
  *
@@ -30,82 +45,6 @@ const refreshCamRender = fp.curryN(3, (elt, rend, cam) => {
 	cam.aspect = elt.clientWidth / elt.clientHeight;
 	cam.updateProjectionMatrix();
 });
-
-/**
- * Applies movement logic.
- *
- * @param {THREE.Object3D} target
- * @param {KeyState} KeyState
- * @void
- */
-const applyMoveKeys = (target, state, keyIsDown = {}) => {
-	const controlActive = fp.some(x => keyIsDown[x]);
-
-	// Move
-	if (controlActive(I.Controls.MoveUp)) {
-		target.translateOnAxis(V.unit.up, state.RunSpeed);
-	}
-
-	if (controlActive(I.Controls.MoveDown)) {
-		target.translateOnAxis(V.unit.down, state.RunSpeed);
-	}
-
-	if (controlActive(I.Controls.MoveForward)) {
-		target.translateOnAxis(V.unit.forward, state.RunSpeed);
-	}
-
-	if (controlActive(I.Controls.MoveBack)) {
-		target.translateOnAxis(V.unit.back, state.RunSpeed);
-	}
-
-	if (controlActive(I.Controls.MoveLeft)) {
-		target.translateOnAxis(V.unit.left, state.RunSpeed);
-	}
-
-	if (controlActive(I.Controls.MoveRight)) {
-		target.translateOnAxis(V.unit.right, state.RunSpeed);
-	}
-
-
-	// Turn
-	if (controlActive(I.Controls.TurnLeft)) {
-		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.up, state.TurnSpeed)
-		);
-	}
-
-	if (controlActive(I.Controls.TurnRight)) {
-		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.down, state.TurnSpeed)
-		);
-	}
-
-	if (controlActive(I.Controls.TurnUp)) {
-		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.right, state.TurnSpeed)
-		);
-	}
-
-	if (controlActive(I.Controls.TurnDown)) {
-		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.left, state.TurnSpeed)
-		);
-	}
-
-	// Roll
-	if (controlActive(I.Controls.RollCW)) {
-		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.forward, state.TurnSpeed)
-		);
-	}
-	if (controlActive(I.Controls.RollCCW)) {
-		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.back, state.TurnSpeed)
-		);
-	}
-
-};
-
 
 const defaultState = ((state) => {
 	// Add dom elts?
@@ -121,7 +60,9 @@ const defaultState = ((state) => {
 	updateRender();
 
 	// Create some scene geometry, declare + add actors
-	const floor = new Mesh(G.newPlane(), G.Debug.normals);
+	const floor = new Mesh(G.newPlane(20000, 20000, 200, 200), G.Debug.normals);
+	floor.rotation.x = Math.PI / 2;
+	floor.position.y = -1000;
 	const boxes = new Array(250).fill(0).map(() => {
 		const mesh = new Mesh(G.newBox(), G.Debug.normals);
 
@@ -155,26 +96,24 @@ const defaultState = ((state) => {
 	cache: {
 		quat: new Quaternion(),
 	},
-	dom: {
-		main: document.querySelector('.main'),
-		minimap: document.querySelector('.minimap'),
-		debug: document.querySelector('.debug'),
-	},
+	dom,
+	tpl,
 	// Constants
-	RunSpeed: 10,
+	RunSpeed: 25,
 	TurnSpeed: Math.PI / 180,
 });
 
 const reducer = (state = defaultState) => {
-	// Move target :/
-	applyMoveKeys(state.bb.keyCtrlTarget, state, I.keys.isDown());
+	// Fly camera, fly!
+	fly(state.bb.keyCtrlTarget, state, I.keys.activeCtrl());
 
 	// Render
 	state.engine.renderer.render(state.engine.scene, state.engine.camera);
 
 	// Debug
-	renderDebug(state.dom.debug, {
+	state.tpl.debugTpl(state.dom.debug, {
 		controls: I.Controls,
+		activeMap: I.keys.activeCtrl(),
 	});
 
 	return state;
@@ -184,18 +123,3 @@ const store = $.newStore(reducer, undefined);
 
 // Render/Update pipeline @todo: woof
 flyd.on(time => store.dispatch(time), $.tick);
-
-
-// updateMiniMap(State, State.camera),
-// cameraHelper.update();
-// State.miniMapRenderer.render(miniMapScene, State.miniMapCam);
-// const cameraHelper = new CameraHelper(camera);
-// const miniMapRenderer = new WebGLRenderer();
-// const miniMapCam = new OrthographicCamera(
-// 	-1000, 1000, -1000, 1000, 1, 1000
-// );
-// miniMapCam.position.y = 500;
-// miniMapCam.rotation.x = Math.PI / 4;
-// miniMapScene.add(cameraHelper);
-// const minimap = document.querySelector('.minimap');
-// minimap.appendChild(miniMapRenderer.domElement);

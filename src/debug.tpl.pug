@@ -1,6 +1,6 @@
 p Controls
 ul.debug_control-list
 	each keys, cmd in controls
-		li
+		li(class=activeMap[cmd] ? 'active' : '')
 			b #{cmd} 
 			= keys.join(', ')

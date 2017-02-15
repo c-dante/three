@@ -8,7 +8,8 @@ export const newBox = (l = 100, w = l, h = l, ...rest) =>
 	new BoxGeometry(l, w, h, ...rest);
 
 
-export const newPlane = () => new PlaneGeometry();
+export const newPlane = (w = 10000, h = w, ws = 1, hs = ws) =>
+	new PlaneGeometry(w, h, ws, hs);
 
 
 /**
