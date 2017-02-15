@@ -1,3 +1,6 @@
 select.options
 	each opt in options
-		option(value=opt)= opt
+		if opt === selected
+			option(value=opt, selected=true)= opt
+		else
+			option(value=opt)= opt

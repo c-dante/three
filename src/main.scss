@@ -54,9 +54,13 @@
 	li {
 		display: flex;
 		justify-content: space-between;
-		
+
 		b {
 			padding-right: 5px;
 		}
 	}
+}
+
+.examples {
+	position: absolute;
 }
