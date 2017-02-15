@@ -8,7 +8,7 @@ import * as $ from './util';
 import * as I from './input';
 import * as G from './geom';
 import * as S from './scene';
-import * as exampleScenes from './examples';
+import * as EX from './examples';
 import { fly } from './examples/fly';
 
 // Display / DOM
@@ -33,6 +33,7 @@ const dom = fp.flow(
 )(['main', 'examples', 'debug']);
 
 
+// @todo: home for this
 /**
  * Updates render window + camera aspect to match.
  *
@@ -47,8 +48,6 @@ const refreshCamRender = fp.curryN(3, (elt, rend, cam) => {
 	cam.updateProjectionMatrix();
 });
 
-const registryOptions = Object.keys(exampleScenes.registry);
-
 const defaultState = ((state) => {
 	// Add dom elts?
 	state.dom.main.appendChild(
@@ -61,7 +60,6 @@ const defaultState = ((state) => {
 	);
 	window.addEventListener('resize', updateRender);
 	updateRender();
-
 
 	// Create some scene geometry, declare + add actors
 	const floor = new Mesh(G.newPlane(20000, 20000, 200, 200), G.Debug.normals);
@@ -92,52 +90,54 @@ const defaultState = ((state) => {
 	// DOM rendering
 	dom,
 	tpl,
-	// Examples state
-	example: registryOptions[0],
-	examples: {},
 	// Constants - @todo: move to settings
 	RunSpeed: 25,
 	TurnSpeed: Math.PI / 180,
 });
 
-const reducer = (state = defaultState, action) => {
-	// Specific example shnoz!
-	if (action.type === 'SET_EXAMPLE') {
-		return {
-			...state,
-			example: action.payload,
-		};
-	}
 
-	// Fly camera, fly!
+// Let's re-make the above as a slice reducer...?
+const otherReducer = $.keyedReducer({
+	examples: EX.reducer,
+	tick: (n, act) => (fp.isNumber(act) ? act : n),
+});
+
+const reducer = (state = defaultState, action) => {
+	const app = otherReducer(state, action);
+	return {
+		...state,
+		app,
+	};
+};
+
+
+// @todo: redux or another state container
+const store = $.newStore(reducer);
+// Pure hooks?
+store.hook($.logHook());
+store.hook(s => () => {
+	const state = s.getState();
+
+	// Fly
 	fly(state.bb.keyCtrlTarget, state, I.keys.activeCtrl());
 
-	// Run example reducer + update state
-	state.examples[state.example] = exampleScenes.registry[state.example](
-		state.examples[state.example],
-		action,
-		state
-	);
-
-	// Render
+	// Render engine
 	state.engine.renderer.render(state.engine.scene, state.engine.camera);
 
+	// Render tpls
 	// Debug @todo: selectors
+	// Example choice @todo: selectors
 	state.tpl.debugTpl(state.dom.debug, {
 		controls: I.Controls,
 		activeMap: I.keys.activeCtrl(),
 	});
 
-	// Example choice
 	state.tpl.examplesTpl(state.dom.examples, {
-		selected: state.example,
-		options: registryOptions,
+		selected: fp.get('example.selected', state),
+		options: EX.registryKeys,
 	});
+});
 
-	return state;
-};
-
-const store = $.newStore(reducer, undefined);
 
 // Hook into event delegation
 dom.examples.addEventListener('input', (evt) => {

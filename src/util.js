@@ -1,5 +1,8 @@
 import flyd from 'flyd';
-// import fp from 'lodash/fp';
+import fp from 'lodash/fp';
+// Ugh, seriously though :/
+export const mapValues = fp.mapValues.convert({ cap: false });
+
 // @todo: actually think about this path crawler code.
 // export const newCrawler = (fn, settings) => {
 // 	const traverser = {
@@ -99,22 +102,40 @@ export const remote = runWithRaf(() => tick(Date.now())).play();
 
 export const act = (type, payload) => ({ type, payload });
 export const newStore = (reducer, initialState) => {
-	let state = initialState;
+	const store = {};
 
-	const getState = () => state;
-	const dispatch = (action) => {
+	let state = initialState;
+	store.getState = () => state;
+
+	const hooks = new Set();
+	store.hook = (fn) => {
+		const lmb = fn(store);
+		hooks.add(lmb);
+		return () => hooks.delete(lmb);
+	};
+
+	store.dispatch = (action) => {
 		try {
 			state = reducer(state, action);
+			hooks.forEach(lmb => lmb.call(undefined, action));
 		} catch (e) {
 			console.error(e, action, state);
 		}
 		return action;
 	};
 
-	return {
-		dispatch, getState,
-	};
+
+	return store;
 };
+
+// Hooks -- Derp de derp stop rebuild redux ya' dingus.
+// OKAY OKAY. LAST ONE.
+export const logHook = () => store =>
+	(action) => {
+		if (!fp.isNumber(action)) {
+			console.log(action, store.getState());
+		}
+	};
 
 
 // Helper to run templates smarter I guess maybe?
@@ -132,3 +153,36 @@ export const tplRenderer = (tpl) => {
 		}
 	};
 };
+
+/**
+ * AKA slice reducer
+ * Takes an object of reducers,
+ * gives each one a mini-state, and access to the outer.
+ * @param {Object<String, function(state: T, action: G): T>} obj
+ * @returns {function(state: A, action: B): A}
+ */
+export const keyedReducer = (obj) => {
+	let state = fp.fromPairs(Object.keys(obj).map(
+		key => [key, undefined]
+	));
+
+	return (globalState, action, ...rest) => {
+		state = mapValues((slice, key) =>
+			obj[key].apply(undefined, [slice, action, globalState].concat(rest)),
+			state
+		);
+		return state;
+	};
+};
+
+/**
+ * Switch reducer to a slice. Passthrough.
+ */
+// export const passReducer = (obj, path) => {
+// 	const state = fp.fromPairs(Object.keys(obj).map(
+// 		key => [key, undefined]
+// 	));
+
+// 	return (global, action, ...rest) => mapValues(
+// 	);
+// };

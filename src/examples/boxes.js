@@ -24,11 +24,14 @@ const defaultBoxesState = (state) => {
 	};
 };
 
-export const boxesReducer = (state, action, globalState) => {
+export const boxesPause = () => {
+
+};
+
+export const boxesReducer = (state, action, global) => {
 	if (!state) {
-		return defaultBoxesState(globalState, action);
+		return defaultBoxesState(global, action);
 	}
 
-	// console.debug(state, action);
 	return state;
 };
