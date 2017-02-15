@@ -1,11 +1,17 @@
 import * as $ from '../util';
+import { wiggleReducer } from './wiggle';
 import { boxesReducer } from './boxes';
 
 export const SET_EXAMPLE = 'Examples:SET_EXAMPLE';
 
+
+// @todo: weird pattern: fucking poltergeist
+const bluh = $.keyedReducer({
+	a: wiggleReducer,
+	b: boxesReducer,
+});
 export const registry = {
-	boxes: boxesReducer,
-	butts: boxesReducer,
+	boxes: (slice, action, global) => bluh(global, action),
 };
 
 export const registryKeys = Object.keys(registry);

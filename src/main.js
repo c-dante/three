@@ -1,12 +1,11 @@
 import fp from 'lodash/fp';
 import flyd from 'flyd';
 import immutable from 'object-path-immutable';
-import { Mesh, Quaternion } from 'three';
+import { Quaternion } from 'three';
 import * as $ from './util';
 
 /* A little splitting of my concerns */
 import * as I from './input';
-import * as G from './geom';
 import * as S from './scene';
 import * as EX from './examples';
 import { fly } from './examples/fly';
@@ -61,15 +60,6 @@ const defaultState = ((state) => {
 	window.addEventListener('resize', updateRender);
 	updateRender();
 
-	// Create some scene geometry, declare + add actors
-	const floor = new Mesh(G.newPlane(20000, 20000, 200, 200), G.Debug.normals);
-	floor.rotation.x = Math.PI / 2;
-	floor.position.y = -1000;
-	const actors = {
-		floor,
-	};
-	S.addActors(actors, state.engine.scene);
-
 	// Set up the blackboard
 	const bb = {
 		keyCtrlTarget: state.engine.camera,
@@ -77,7 +67,6 @@ const defaultState = ((state) => {
 
 	// update the state
 	return immutable(state)
-		.assign('actors', actors)
 		.assign('bb', bb)
 		.value();
 })({
@@ -97,26 +86,15 @@ const defaultState = ((state) => {
 
 
 // Let's re-make the above as a slice reducer...?
-const tickSelector = fp.getOr(0, 'app.tick');
 const otherReducer = $.keyedReducer({
 	examples: EX.reducer,
-	delta: (n = 0, act, global) => (fp.isNumber(act) ? act - tickSelector(global) : n),
+	delta: (n = 0, act, global) => (fp.isNumber(act) ? act - $.tickSelector(global) : n),
 	tick: (n = 0, act) => (fp.isNumber(act) ? act : n),
 });
 
 // @todo: somehow remove this extra wrapper...?
 const reducer = (state = defaultState, action) => {
 	const app = otherReducer(state, action);
-
-	// @todo: move into example once I convert to naff
-	const td = (tickSelector(state) / 100000000) * Math.PI;
-	state.actors.floor.geometry.vertices.forEach((vert, i) => {
-		vert.z = Math.sin(i*td) * 100;
-		// vert.x += i % 500;
-	});
-
-	state.actors.floor.geometry.verticesNeedUpdate = true;
-
 	return {
 		...state,
 		app,
@@ -156,12 +134,12 @@ store.hook(s => () => {
 dom.examples.addEventListener('input', (evt) => {
 	store.dispatch($.act('SET_EXAMPLE', evt.target.value));
 });
-dom.debug.addEventListener('click', evt => {
+dom.debug.addEventListener('click', (evt) => {
 	switch (evt.target.getAttribute('data-action')) {
 		case 'print_state':
 			console.debug(store.getState());
 			break;
-		
+
 		default:
 			break;
 	}

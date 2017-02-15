@@ -186,3 +186,7 @@ export const keyedReducer = (obj) => {
 // 	return (global, action, ...rest) => mapValues(
 // 	);
 // };
+
+
+// @todo: export selectors file
+export const tickSelector = fp.getOr(0, 'app.tick');
