@@ -1,12 +1,15 @@
 import fp from 'lodash/fp';
 import flyd from 'flyd';
 import immutable from 'object-path-immutable';
+import createLogger from 'redux-logger';
 import { Quaternion } from 'three';
 import * as $ from './util';
+import { createStore, applyMiddleware } from './redux-mini';
 
 /* A little splitting of my concerns */
 import * as I from './input';
 import * as S from './scene';
+import * as X from './selectors';
 import * as EX from './examples';
 import { fly } from './examples/fly';
 
@@ -88,7 +91,7 @@ const defaultState = ((state) => {
 // Let's re-make the above as a slice reducer...?
 const otherReducer = $.keyedReducer({
 	examples: EX.reducer,
-	delta: (n = 0, act, global) => (fp.isNumber(act) ? act - $.tickSelector(global) : n),
+	delta: (n = 0, act, global) => (fp.isNumber(act) ? act - X.tickSelector(global) : n),
 	tick: (n = 0, act) => (fp.isNumber(act) ? act : n),
 });
 
@@ -102,26 +105,30 @@ const reducer = (state = defaultState, action) => {
 };
 
 // @todo: redux or another state container
-const store = $.newStore(reducer);
+const store = createStore(
+	reducer,
+	defaultState,
+	applyMiddleware(
+		createLogger({
+			collapsed: true,
+			predicate: (getState, action) => !fp.isNumber(action),
+		})
+	)
+);
 
-// Pure hooks?
-store.hook($.logHook());
-store.hook(s => () => {
-	const state = s.getState();
+// store.hook($.logHook());
+store.subscribe(() => {
+	const state = store.getState();
 
 	// Fly
-	fly(state.bb.keyCtrlTarget, state, I.keys.activeCtrl());
+	fly(X.moveTarget(state), X.moveSettings(state), I.keys.activeCtrl());
 
-	// Render engine
-	state.engine.renderer.render(state.engine.scene, state.engine.camera);
+	// Render the scene
+	const rend = X.renderState(state);
+	rend.renderer.render(rend.scene, rend.camera);
 
 	// Render tpls
-	// Debug @todo: selectors
-	// Example choice @todo: selectors
-	state.tpl.debugTpl(state.dom.debug, {
-		controls: I.Controls,
-		activeMap: I.keys.activeCtrl(),
-	});
+	state.tpl.debugTpl(state.dom.debug, X.debugStateSelector(state));
 
 	state.tpl.examplesTpl(state.dom.examples, {
 		selected: fp.get('example.selected', state),

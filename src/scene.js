@@ -20,7 +20,7 @@ export const createBasicScene = () => {
 	const camera = new PerspectiveCamera(
 		27,
 		1,
-		1, 10000
+		1, 20000
 	);
 
 	return {

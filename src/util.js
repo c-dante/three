@@ -97,46 +97,10 @@ export const interval = (fn, ms) => {
 	}, tick);
 };
 
-export const remote = runWithRaf(() => tick(Date.now())).play();
-
+const boot = Date.now();
+export const remote = runWithRaf(() => tick(Date.now() - boot)).play();
 
 export const act = (type, payload) => ({ type, payload });
-export const newStore = (reducer, initialState) => {
-	const store = {};
-
-	let state = initialState;
-	store.getState = () => state;
-
-	const hooks = new Set();
-	store.hook = (fn) => {
-		const lmb = fn(store);
-		hooks.add(lmb);
-		return () => hooks.delete(lmb);
-	};
-
-	store.dispatch = (action) => {
-		try {
-			state = reducer(state, action);
-			hooks.forEach(lmb => lmb.call(undefined, action));
-		} catch (e) {
-			console.error(e, action, state);
-		}
-		return action;
-	};
-
-
-	return store;
-};
-
-// Hooks -- Derp de derp stop rebuild redux ya' dingus.
-// OKAY OKAY. LAST ONE.
-export const logHook = () => store =>
-	(action) => {
-		if (!fp.isNumber(action)) {
-			console.log(action, store.getState());
-		}
-	};
-
 
 // Helper to run templates smarter I guess maybe?
 export const tplRenderer = (tpl) => {
@@ -186,7 +150,3 @@ export const keyedReducer = (obj) => {
 // 	return (global, action, ...rest) => mapValues(
 // 	);
 // };
-
-
-// @todo: export selectors file
-export const tickSelector = fp.getOr(0, 'app.tick');

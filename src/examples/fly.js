@@ -1,4 +1,7 @@
+import { Quaternion } from 'three';
 import * as V from '../vector';
+
+const cacheQuat = new Quaternion();
 
 /**
  * Applies movement logic.
@@ -7,10 +10,10 @@ import * as V from '../vector';
  * @param {KeyState} KeyState
  * @void
  */
-export const fly = (target, state, activeCommands = {}) => {
-	const multiplier = activeCommands['I.Controls.Sprint'] ? 2 : 1;
-	const run = state.RunSpeed * multiplier;
-	const turn = state.TurnSpeed * multiplier;
+export const fly = (target, speed, activeCommands = {}) => {
+	const multiplier = activeCommands.Sprint ? 2 : 1;
+	const run = speed.run * multiplier;
+	const turn = speed.turn * multiplier;
 
 	// Move
 	if (activeCommands.MoveUp) {
@@ -41,37 +44,37 @@ export const fly = (target, state, activeCommands = {}) => {
 	// Turn
 	if (activeCommands.TurnLeft) {
 		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.up, turn)
+			cacheQuat.setFromAxisAngle(V.unit.up, turn)
 		);
 	}
 
 	if (activeCommands.TurnRight) {
 		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.down, turn)
+			cacheQuat.setFromAxisAngle(V.unit.down, turn)
 		);
 	}
 
 	if (activeCommands.TurnUp) {
 		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.right, turn)
+			cacheQuat.setFromAxisAngle(V.unit.right, turn)
 		);
 	}
 
 	if (activeCommands.TurnDown) {
 		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.left, turn)
+			cacheQuat.setFromAxisAngle(V.unit.left, turn)
 		);
 	}
 
 	// Roll
 	if (activeCommands.RollCW) {
 		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.forward, turn)
+			cacheQuat.setFromAxisAngle(V.unit.forward, turn)
 		);
 	}
 	if (activeCommands.RollCCW) {
 		target.quaternion.multiply(
-			state.cache.quat.setFromAxisAngle(V.unit.back, turn)
+			cacheQuat.setFromAxisAngle(V.unit.back, turn)
 		);
 	}
 

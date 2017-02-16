@@ -13,6 +13,8 @@
     "flyd": "^0.2.4",
     "lodash": "^4.17.4",
     "object-path-immutable": "^0.5.1",
+    "redux-logger": "^2.8.1",
+    "reselect": "^2.5.4",
     "three": "^0.84.0"
   },
   "devDependencies": {

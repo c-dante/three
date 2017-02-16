@@ -50,6 +50,10 @@ module.exports = {
 
 		// set max line length to a more reasonable number
 		'max-len': [2, 120],
+		
+		// fuck these rules
+		'no-mixed-operators': [0],
+		'no-plusplus': [0],
 	},
 	env: {
 		mocha: true,
