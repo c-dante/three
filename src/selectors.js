@@ -24,3 +24,12 @@ export const debugStateSelector = createSelector(
 	[() => I.keys.activeCtrl(), () => I.Controls],
 	(activeMap, controls) => ({ activeMap, controls })
 );
+
+export const app = fp.get('app');
+export const example = createSelector([app], fp.get('examples'));
+// export const exampleSelected = createSelector([example], fp.get('selected'));
+// export const exampleSlices = createSelector([example], fp.get('slice'));
+// export const currentExampleSlice = createSelector(
+// 	[exampleSelected, exampleSlices],
+// 	(selected, slices) => slices[selected]
+// );

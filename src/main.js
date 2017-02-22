@@ -1,6 +1,7 @@
 import fp from 'lodash/fp';
 import flyd from 'flyd';
 import immutable from 'object-path-immutable';
+import ReduxThunk from 'redux-thunk';
 import createLogger from 'redux-logger';
 import { Quaternion } from 'three';
 import * as $ from './util';
@@ -109,6 +110,7 @@ const store = createStore(
 	reducer,
 	defaultState,
 	applyMiddleware(
+		ReduxThunk,
 		createLogger({
 			collapsed: true,
 			predicate: (getState, action) => !fp.isNumber(action),
@@ -139,7 +141,7 @@ store.subscribe(() => {
 
 // Hook into event delegation @todo: hmmmmm
 dom.examples.addEventListener('input', (evt) => {
-	store.dispatch($.act('SET_EXAMPLE', evt.target.value));
+	store.dispatch(EX.actions.setExample(evt.target.value));
 });
 dom.debug.addEventListener('click', (evt) => {
 	switch (evt.target.getAttribute('data-action')) {
@@ -152,5 +154,9 @@ dom.debug.addEventListener('click', (evt) => {
 	}
 });
 
+// @todo: fire off default example
+store.dispatch(EX.actions.setExample(EX.registryKeys[0]));
+
 // Render/Update pipeline @todo: woof
 flyd.on(time => store.dispatch(time), $.tick);
+

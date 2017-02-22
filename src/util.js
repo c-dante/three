@@ -139,14 +139,21 @@ export const keyedReducer = (obj) => {
 	};
 };
 
-/**
- * Switch reducer to a slice. Passthrough.
- */
-// export const passReducer = (obj, path) => {
-// 	const state = fp.fromPairs(Object.keys(obj).map(
-// 		key => [key, undefined]
-// 	));
 
-// 	return (global, action, ...rest) => mapValues(
-// 	);
-// };
+/**
+ * Basics for a show/hide reducer
+ */
+export const showHideExt = (namespace) => {
+	const SHOW = `${namespace}:SHOW`;
+	const HIDE = `${namespace}:HIDE`;
+
+	// Easier to destructure
+	return {
+		SHOW,
+		HIDE,
+		actions: {
+			show: () => act(SHOW),
+			hide: () => act(HIDE),
+		},
+	};
+};
